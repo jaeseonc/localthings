@@ -19,6 +19,34 @@ Reuses dishwasher.DIAGNOSIS for /diagnosis/vs/0.
 
 from ..capabilities import air_purifier, airconditioner, common, dishwasher, ehs, ignored
 from ._base import DeviceRegistry, _build
+from ._base import DeviceEntity
+
+class AirConditionerRegistry(DeviceRegistry):
+    def get_entities(self, resources):
+        entities = super().get_entities(resources)
+        entities.append(self._create_power_entity(resources))
+        return entities
+
+    def _create_power_entity(self, resources):
+        power_resource = resources.get("/power/vs/0")
+        if not power_resource:
+            return None
+
+        power_state = power_resource.get("value")
+        if power_state is None:
+            return None
+
+        # 비정상적인 전력값을 0으로 변환
+        if power_state > 65000:
+            power_state = 0
+
+        return DeviceEntity(
+            name="Power State",
+            unique_id="power_state",
+            state=power_state,
+            entity_category="diagnostic",
+        )
+
 
 REGISTRY = DeviceRegistry(
     name="airconditioner",
