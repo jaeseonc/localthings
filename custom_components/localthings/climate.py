@@ -462,7 +462,14 @@ class LocalThingsClimate(LocalThingsEntity, ClimateEntity):
         # pre-write state after a power toggle (issue #53).
         power = self._rep(POWER_VS_HREF).get("x.com.samsung.da.power")
         if power is not None:
-            return str(power).lower() == "on"
+            power_str = str(power).lower()
+            # 0xFEFE (=65278) 와 같은 비정상적인 값은 무시
+            try:
+                power_int = int(power_str)
+                return power_int != 65278 and power_str == "on"
+            except (ValueError, TypeError):
+                pass
+            return False
         return bool(self._rep(POWER_HREF).get("value"))
 
     def _supported(self, href: str) -> list[str]:
