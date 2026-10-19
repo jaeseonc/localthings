@@ -41,7 +41,10 @@ def int_or_none(v):
 
 def clamp_power(v):
     n = _num(v)
-    return 0.0 if (n is not None and n < 0) else n
+    # 0xFEFE (=65278) 와 같은 비정상적인 값은 무시하여 0으로 처리
+    if n is not None and (n == 65278 or n < 0):
+        return 0.0
+    return n
 
 
 def wh_to_kwh(v):
